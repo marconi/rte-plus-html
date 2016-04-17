@@ -29,6 +29,7 @@
 
 :local(.source) {
   min-height: 273px;
+  min-width: 600px;
   outline: none;
   resize: both;
   display: block;

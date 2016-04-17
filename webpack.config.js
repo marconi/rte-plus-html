@@ -6,14 +6,14 @@ var nodeEnv = process.env.NODE_ENV
 var PATHS = {
   src: __dirname + '/src',
   dist: __dirname + '/dist'
-};
+}
 var HTMLWebpackPluginConfig = new HtmlWebpackPlugin({
   template: PATHS.src + '/index.html',
   filename: 'index.html',
   inject: 'body'
-});
+})
 
-module.exports = {
+var config = {
   entry: [
     PATHS.src
   ],
@@ -42,4 +42,20 @@ module.exports = {
       'process.env.NODE_ENV': JSON.stringify(nodeEnv)
     })
   ]
-};
+}
+
+// when testing, override so it knows only how to load css modules
+if (nodeEnv === 'testing') {
+  config = {
+    output: {
+      libraryTarget: 'commonjs2',
+    },
+    module: {
+      loaders: [
+        {test: /\.css$/, loaders: ['style', 'css?modules&importLoaders=1&localIdentName=[local]']},
+      ],
+    }
+  }
+}
+
+module.exports = config

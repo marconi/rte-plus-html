@@ -1,80 +1,72 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
 import expect from 'expect'
-import expectJSX from 'expect-jsx'
-import TestUtils from 'react-addons-test-utils'
+import {mount} from 'enzyme'
 import RichTextEditor from 'react-rte'
 import Editor from '../components/Editor.jsx'
 import IconButton from '../components/IconButton.jsx'
 import HtmlEditor from '../components/HtmlEditor.jsx'
 
-expect.extend(expectJSX)
-describe('Editor', () => {
+describe('<Editor />', () => {
   it('should render editor defaults', () => {
-    const editor = ReactDOM.render(<Editor />, document.createElement('div'))
-    const richTextEditor = TestUtils.findRenderedComponentWithType(editor, RichTextEditor)
-    expect(richTextEditor).toExist()
+    const wrapper = mount(<Editor />)
+    const richTextEditor = wrapper.find(RichTextEditor).first()
+    expect(richTextEditor.get(0)).toExist()
 
-    const iconButtons = TestUtils.scryRenderedComponentsWithType(editor, IconButton)
-    expect(iconButtons.length).toEqual(2)
+    const richTextButton = wrapper.find('.iconButtonRichText').first()
+    expect(richTextButton.get(0)).toExist()
 
-    const richTextButton = TestUtils.findRenderedDOMComponentWithClass(editor, 'iconButtonRichText')
-    expect(richTextButton).toExist()
-
-    const htmlButton = TestUtils.findRenderedDOMComponentWithClass(editor, 'iconButtonHtml')
-    expect(htmlButton).toExist()
+    const htmlButton = wrapper.find('.iconButtonHtml').first()
+    expect(htmlButton.get(0)).toExist()
   })
 
   it('should switch from rich text to html', () => {
-    const sampleHtml = '<p>Hello <del>World!<del></p>'
-    const newValue = RichTextEditor.createValueFromString(sampleHtml, 'html')
-    const editor = ReactDOM.render(<Editor value={newValue} />, document.createElement('div'))
+    const html = '<p>Hello <del>World!<del></p>'
+    const newValue = RichTextEditor.createValueFromString(html, 'html')
+    const wrapper = mount(<Editor value={newValue} />)
 
-    const richTextEditor = TestUtils.findRenderedComponentWithType(editor, RichTextEditor)
-    expect(richTextEditor.props.value.toString('html')).toEqual(sampleHtml)
+    const richTextEditor = wrapper.find(RichTextEditor).first()
+    expect(richTextEditor.get(0)).toExist()
+    expect(richTextEditor.props().value.toString('html')).toEqual(html)
 
-    const htmlButton = TestUtils.findRenderedDOMComponentWithClass(editor, 'iconButtonHtml')
-    TestUtils.Simulate.click(htmlButton)
+    const htmlButton = wrapper.find('.iconButtonHtml').first()
+    htmlButton.simulate('click')
 
-    const htmlEditor = TestUtils.findRenderedComponentWithType(editor, HtmlEditor)
-    expect(htmlEditor).toExist()
+    const htmlEditor = wrapper.find(HtmlEditor).first()
+    expect(htmlEditor.get(0)).toExist()
 
-    const textarea = TestUtils.findRenderedDOMComponentWithClass(htmlEditor, 'source')
-    expect(textarea).toExist()
-    expect(textarea.value).toEqual(sampleHtml)
+    const textarea = wrapper.find('textarea').first()
+    expect(textarea.get(0)).toExist()
+    expect(textarea.text()).toEqual(html)
   })
 
   it('should switch from html to rich text', () => {
-    const editor = ReactDOM.render(<Editor />, document.createElement('div'))
-    const richTextButton = TestUtils.findRenderedDOMComponentWithClass(editor, 'iconButtonRichText')
-    const htmlButton = TestUtils.findRenderedDOMComponentWithClass(editor, 'iconButtonHtml')
+    const wrapper = mount(<Editor />)
+    const richTextButton = wrapper.find('.iconButtonRichText').first()
+    const htmlButton = wrapper.find('.iconButtonHtml').first()
 
-    // there should be rich text but not html editor
-    let richTextEditor = TestUtils.findRenderedComponentWithType(editor, RichTextEditor)
-    expect(richTextEditor).toExist()
-    expect(() => {
-      TestUtils.findRenderedComponentWithType(editor, HtmlEditor)
-    }).toThrow(/Did not find/)
+    let richTextEditor = wrapper.find(RichTextEditor).first()
+    expect(richTextEditor.get(0)).toExist()
 
-    // switch to html
-    TestUtils.Simulate.click(htmlButton)
+    let htmlEditor = wrapper.find(HtmlEditor).first()
+    expect(htmlEditor.get(0)).toNotExist()
 
-    // now there should be no rich text but with html editor
-    expect(() => {
-      TestUtils.findRenderedComponentWithType(editor, RichTextEditor)
-    }).toThrow(/Did not find/)
-    let htmlEditor = TestUtils.findRenderedComponentWithType(editor, HtmlEditor)
-    expect(htmlEditor).toExist()
+    expect(wrapper.state().showing).toEqual('richtext')
+    htmlButton.simulate('click') // switch to html
+    expect(wrapper.state().showing).toEqual('html')
 
-    // switch back to rich text
-    TestUtils.Simulate.click(richTextButton)
+    richTextEditor = wrapper.find(RichTextEditor).first()
+    expect(richTextEditor.get(0)).toNotExist()
 
-    // rich text should be back and html editor should be gone again
-    richTextEditor = TestUtils.findRenderedComponentWithType(editor, RichTextEditor)
-    expect(richTextEditor).toExist()
+    htmlEditor = wrapper.find(HtmlEditor).first()
+    expect(htmlEditor.get(0)).toExist()
 
-    expect(() => {
-      TestUtils.findRenderedComponentWithType(editor, HtmlEditor)
-    }).toThrow(/Did not find/)
+    richTextButton.simulate('click') // switch back to rich text
+    expect(wrapper.state().showing).toEqual('richtext')
+
+    richTextEditor = wrapper.find(RichTextEditor).first()
+    expect(richTextEditor.get(0)).toExist()
+
+    htmlEditor = wrapper.find(HtmlEditor).first()
+    expect(htmlEditor.get(0)).toNotExist()
   })
 })
