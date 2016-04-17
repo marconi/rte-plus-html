@@ -6,15 +6,11 @@ import IconButton from './IconButton.jsx'
 import styles from '../css/editor.css'
 
 export default class Editor extends Component {
-  static propTypes: {
-    value: PropTypes.object
-  }
-
   constructor(props) {
     super(props)
     autobind(this)
     this.state = {
-      value: this.props.value || RichTextEditor.createEmptyValue(),
+      value: RichTextEditor.createEmptyValue(),
       showing: 'richtext'
     }
   }

@@ -7,29 +7,30 @@ import IconButton from '../components/IconButton.jsx'
 import HtmlEditor from '../components/HtmlEditor.jsx'
 
 describe('<Editor />', () => {
+
+  const wrapper = mount(<Editor />)
+  const richTextButton = wrapper.find('.iconButtonRichText').first()
+  const htmlButton = wrapper.find('.iconButtonHtml').first()
+
   it('should render editor defaults', () => {
-    const wrapper = mount(<Editor />)
     const richTextEditor = wrapper.find(RichTextEditor).first()
     expect(richTextEditor.get(0)).toExist()
-
-    const richTextButton = wrapper.find('.iconButtonRichText').first()
     expect(richTextButton.get(0)).toExist()
-
-    const htmlButton = wrapper.find('.iconButtonHtml').first()
     expect(htmlButton.get(0)).toExist()
   })
 
   it('should switch from rich text to html', () => {
     const html = '<p>Hello <del>World!<del></p>'
     const newValue = RichTextEditor.createValueFromString(html, 'html')
-    const wrapper = mount(<Editor value={newValue} />)
+    wrapper.setState({value: newValue})
 
     const richTextEditor = wrapper.find(RichTextEditor).first()
     expect(richTextEditor.get(0)).toExist()
     expect(richTextEditor.props().value.toString('html')).toEqual(html)
 
-    const htmlButton = wrapper.find('.iconButtonHtml').first()
+    expect(wrapper.state().showing).toEqual('richtext')
     htmlButton.simulate('click')
+    expect(wrapper.state().showing).toEqual('html')
 
     const htmlEditor = wrapper.find(HtmlEditor).first()
     expect(htmlEditor.get(0)).toExist()
@@ -40,27 +41,14 @@ describe('<Editor />', () => {
   })
 
   it('should switch from html to rich text', () => {
-    const wrapper = mount(<Editor />)
-    const richTextButton = wrapper.find('.iconButtonRichText').first()
-    const htmlButton = wrapper.find('.iconButtonHtml').first()
-
     let richTextEditor = wrapper.find(RichTextEditor).first()
-    expect(richTextEditor.get(0)).toExist()
-
-    let htmlEditor = wrapper.find(HtmlEditor).first()
-    expect(htmlEditor.get(0)).toNotExist()
-
-    expect(wrapper.state().showing).toEqual('richtext')
-    htmlButton.simulate('click') // switch to html
-    expect(wrapper.state().showing).toEqual('html')
-
-    richTextEditor = wrapper.find(RichTextEditor).first()
     expect(richTextEditor.get(0)).toNotExist()
 
-    htmlEditor = wrapper.find(HtmlEditor).first()
+    let htmlEditor = wrapper.find(HtmlEditor).first()
     expect(htmlEditor.get(0)).toExist()
 
-    richTextButton.simulate('click') // switch back to rich text
+    expect(wrapper.state().showing).toEqual('html')
+    richTextButton.simulate('click')
     expect(wrapper.state().showing).toEqual('richtext')
 
     richTextEditor = wrapper.find(RichTextEditor).first()
